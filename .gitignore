@@ -1,0 +1,10 @@
+> **Nota:** este proyecto no usa control de versiones (`--vcs none` en `uv init`).
+> Este archivo se conserva por si en el futuro se decide inicializar un repositorio git.
+
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+*.egg-info/
+dist/
+build/
