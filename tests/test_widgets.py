@@ -232,6 +232,19 @@ class TestListPanel:
             panel.handle_event(_wheel(1))
         assert panel.scroll == 0
 
+    def test_scroll_uses_parent_local_coordinates(self):
+        parent = Panel(pygame.Rect(100, 100, 180, 100))
+        panel = parent.add(ListPanel(
+            pygame.Rect(0, 0, 150, 60),
+            items=[f"item{i}" for i in range(20)],
+            item_height=20,
+        ))
+        event = pygame.event.Event(
+            pygame.MOUSEWHEEL, x=0, y=-1, flipped=False, pos=(110, 110)
+        )
+        assert parent.handle_event(event) is True
+        assert panel.scroll > 0
+
     def test_set_items_resets_selection(self):
         panel = ListPanel(pygame.Rect(0, 0, 150, 100), items=["a", "b"], item_height=25)
         panel.handle_event(_mouse_down((10, 5)))

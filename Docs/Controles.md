@@ -57,6 +57,11 @@ tras un `Ctrl+V`), este queda "en la mano", centrado en el cursor:
 | Botón central + arrastrar | Desplazar la vista (paneo) |
 | `F` | Ajustar el zoom para ver la rejilla entera (cuando no hay un sello activo) |
 | `1` | Zoom real: 1 celda = 1 píxel |
+| `F11` | Alternar pantalla completa |
+
+El panel lateral y la barra de estado muestran el tamaño de la matriz actual.
+Al llegar al zoom mínimo, la matriz completa queda ajustada al viewport; si las
+proporciones no coinciden, queda espacio libre en la dimensión sobrante.
 
 ## Archivos
 
@@ -85,5 +90,5 @@ guarde esta aplicación se pueden abrir allí.
 - El panel lateral tiene más contenido del que cabe en una ventana pequeña:
   se puede desplazar con la rueda del ratón sobre él.
 - La barra inferior muestra generación, población (y su porcentaje sobre el
-  total de celdas), generaciones/segundo **reales** medidas, y los FPS de
-  renderizado.
+  total de celdas), tamaño de la matriz, generaciones/segundo **reales**
+  medidas, y los FPS de renderizado.

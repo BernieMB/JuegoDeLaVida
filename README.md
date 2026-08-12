@@ -27,10 +27,10 @@ reglas *life-like* emparentadas), escrita en Python con [uv](https://docs.astral
 - **Edición interactiva**: pintar y borrar celdas arrastrando el ratón (sin
   huecos, incluso con la simulación en marcha), selección rectangular,
   copiar/cortar/pegar, deshacer/rehacer.
-- **Biblioteca de 23 construcciones conocidas**, verificadas por simulación
+- **Biblioteca de 30 construcciones conocidas**, verificadas por simulación
   real (no solo copiadas de memoria): formas estables, osciladores, naves,
-  matusalenes y el cañón de planeadores de Gosper. Se colocan como "sello"
-  con rotación y volteo.
+  matusalenes y cañones de planeadores de Gosper y Simkin. Se colocan como
+  "sello" con rotación y volteo.
 - **Persistencia en formato RLE estándar** (compatible con Golly/LifeWiki):
   guardar el tablero completo o solo una selección, cargar patrones propios
   o externos, navegador de archivos integrado.
@@ -41,8 +41,9 @@ reglas *life-like* emparentadas), escrita en Python con [uv](https://docs.astral
   tablero se ha vuelto una forma estable o un oscilador (y de qué periodo),
   con opción de auto-pausar.
 - **Zoom y paneo** fluidos, gráfica de tendencia de población, exportación a
-  PNG, y un modo `--benchmark` que mide el rendimiento real sin abrir
-  ventana.
+  PNG, pantalla completa con `F11`, información permanente del tamaño de la
+  matriz, y un modo `--benchmark` que mide el rendimiento real sin abrir
+  ventana. El zoom mínimo ajusta la matriz completa al viewport.
 
 ## Requisitos
 
@@ -67,6 +68,7 @@ uv run vida --rule highlife         # empezar con otra regla del catalogo
 uv run vida --topology bounded      # exterior muerto en vez de toroidal
 uv run vida --random --density 0.35 --seed 42   # arrancar con una sopa aleatoria reproducible
 uv run vida --window 1600x1000      # tamano inicial de ventana distinto
+uv run vida --fullscreen             # arrancar a pantalla completa (F11 para alternar)
 uv run vida --version
 uv run vida --help
 ```
@@ -91,6 +93,7 @@ uv run vida --benchmark --size 200x200 --benchmark-generations 300
 | Copiar / cortar / pegar | `Ctrl+C` / `Ctrl+X` / `Ctrl+V` |
 | Deshacer / rehacer | `Ctrl+Z` / `Ctrl+Y` |
 | Zoom / paneo | Rueda del ratón / botón central + arrastrar |
+| Pantalla completa | `F11` o botón de Vista |
 | Guardar tablero / selección | `Ctrl+S` / `Ctrl+Mayús+S` |
 | Ayuda completa (en la app) | `F1` o `H` |
 
@@ -103,7 +106,7 @@ src/vida/
 ├── engine.py       # motor de simulacion (NumPy, LUT de reglas, undo)
 ├── rules.py        # parseo de rulestrings B../S.. y catalogo de reglas
 ├── rle.py          # lectura/escritura de patrones RLE y plaintext
-├── patterns.py      # biblioteca de 23 construcciones conocidas y verificadas
+├── patterns.py      # biblioteca de 30 construcciones conocidas y verificadas
 ├── camera.py        # transformaciones mundo<->pantalla, zoom, paneo
 ├── renderer.py       # paleta NumPy -> pygame, modos clasico/edad
 ├── selection.py     # seleccion, portapapeles, sellos, rasterizado de linea
@@ -116,7 +119,7 @@ src/vida/
     ├── theme.py      # colores y fuentes
     └── widgets.py    # Button, Slider, ListPanel, Sparkline, Panel...
 
-tests/                # ~370 tests (pytest)
+tests/                # 385 tests (pytest, 1 marcado slow)
 patterns/             # patrones guardados por el usuario (.rle)
 Docs/
 ├── Planning.md       # investigacion, arquitectura y plan de fases
@@ -126,7 +129,7 @@ Docs/
 ## Tests
 
 ```powershell
-uv run pytest              # suite rapida (~370 tests, ~3 segundos)
+uv run pytest              # suite rapida (385 tests, ~3 segundos)
 uv run pytest -m slow       # incluye la validacion de Acorn (5206 generaciones, ~2.5 min)
 ```
 

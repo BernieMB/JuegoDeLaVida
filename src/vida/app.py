@@ -76,19 +76,31 @@ class App:
     def __init__(self, *, width: int = 200, height: int = 200,
                  rule: Rule | None = None, topology: Topology = Topology.TORUS,
                  window_size: tuple[int, int] = DEFAULT_WINDOW_SIZE,
+                 fullscreen: bool = False,
                  caption: str = "El Juego de la Vida",
                  patterns_dir: Path | str = "patterns") -> None:
         pygame.init()
         pygame.display.set_caption(caption)
-        flags = pygame.RESIZABLE
-        self.screen = pygame.display.set_mode(window_size, flags)
+        self.fullscreen = bool(fullscreen)
+        self._windowed_size = window_size
+        if self.fullscreen:
+            info = pygame.display.Info()
+            display_size = (
+                info.current_w or window_size[0],
+                info.current_h or window_size[1],
+            )
+            flags = pygame.FULLSCREEN
+        else:
+            display_size = window_size
+            flags = pygame.RESIZABLE
+        self.screen = pygame.display.set_mode(display_size, flags)
         self.clock = pygame.time.Clock()
         self.patterns_dir = Path(patterns_dir)
 
         self.engine = LifeEngine(width, height, rule=rule, topology=topology)
         self.renderer = Renderer(mode=ColorMode.CLASSIC)
 
-        self.window_width, self.window_height = window_size
+        self.window_width, self.window_height = self.screen.get_size()
         self._recompute_layout()
         self.camera = Camera(grid_width=width, grid_height=height,
                               viewport_width=self.viewport_rect.width,
@@ -171,6 +183,10 @@ class App:
 
         add_label("El Juego de la Vida")
         add_label("Conway · B3/S23 y variantes", font=theme.font_small, color=theme.text_dim, height=18)
+        self.lbl_grid_size = add_label(
+            f"Matriz: {self.engine.width} x {self.engine.height} ({self.engine.width * self.engine.height:,} celdas)",
+            font=theme.font_small, color=theme.text_dim, height=18,
+        )
         add_gap(12)
 
         # --- Simulacion --------------------------------------------------
@@ -234,6 +250,11 @@ class App:
         add_label("Vista", font=theme.font_normal, color=theme.text_dim, height=20)
         add_button("Ajustar a la ventana", self.fit_view)
         add_button("Tamano real (1:1)", self.zoom_actual_size)
+        self.btn_fullscreen = panel.add(ToggleButton(
+            pygame.Rect(pad, y, w, 36), "Pantalla completa (F11)",
+                        checked=self.fullscreen, on_toggle=self._on_fullscreen_toggled,
+        ))
+        y += 44
         self.btn_color_mode = panel.add(ToggleButton(
             pygame.Rect(pad, y, w, 36), "Coloreado por edad", checked=False,
             on_toggle=self._on_color_mode_toggled,
@@ -269,6 +290,7 @@ class App:
             "Topologia: Toroidal" if self.engine.topology is Topology.TORUS
             else "Topologia: Acotada"
         )
+        self.btn_fullscreen.set_checked(self.fullscreen)
 
     def _sync_edit_buttons(self) -> None:
         self.btn_undo.enabled = self.engine.can_undo()
@@ -476,6 +498,7 @@ class App:
         ("F", "Ajustar vista (o voltear el sello activo, si hay uno)"),
         ("G", "Rellenar aleatoriamente"),
         ("1", "Zoom real (1 celda = 1 pixel)"),
+        ("F11", "Alternar pantalla completa"),
         ("P", "Exportar la vista actual como PNG"),
         ("Clic izq. (arrastrar)", "Pintar celdas vivas"),
         ("Clic der. (arrastrar)", "Borrar celdas"),
@@ -550,8 +573,12 @@ class App:
         )
 
     def handle_resize(self, width: int, height: int) -> None:
+        flags = pygame.FULLSCREEN if self.fullscreen else pygame.RESIZABLE
+        self.screen = pygame.display.set_mode((width, height), flags)
+        self._update_layout(*self.screen.get_size())
+
+    def _update_layout(self, width: int, height: int) -> None:
         self.window_width, self.window_height = width, height
-        self.screen = pygame.display.set_mode((width, height), pygame.RESIZABLE)
         self._recompute_layout()
         self.camera.resize_viewport(self.viewport_rect.width, self.viewport_rect.height)
         self.panel.rect.height = height
@@ -626,6 +653,30 @@ class App:
     def toggle_color_mode(self) -> None:
         new_mode = self.renderer.toggle_mode()
         self.btn_color_mode.set_checked(new_mode == ColorMode.AGE)
+
+    def toggle_fullscreen(self) -> None:
+        if self.fullscreen:
+            target_size = self._windowed_size
+            target_fullscreen = False
+            flags = pygame.RESIZABLE
+        else:
+            self._windowed_size = (self.window_width, self.window_height)
+            info = pygame.display.Info()
+            target_size = (
+                info.current_w or self.window_width,
+                info.current_h or self.window_height,
+            )
+            target_fullscreen = True
+            flags = pygame.FULLSCREEN
+
+        self.screen = pygame.display.set_mode(target_size, flags)
+        self.fullscreen = target_fullscreen
+        self._update_layout(*self.screen.get_size())
+        self.btn_fullscreen.set_checked(self.fullscreen)
+
+    def _on_fullscreen_toggled(self, checked: bool) -> None:
+        if checked != self.fullscreen:
+            self.toggle_fullscreen()
 
     def _on_color_mode_toggled(self, checked: bool) -> None:
         self.renderer.set_mode(ColorMode.AGE if checked else ColorMode.CLASSIC)
@@ -824,6 +875,8 @@ class App:
             self.fit_view(); return True
         if key == pygame.K_1:
             self.zoom_actual_size(); return True
+        if key == pygame.K_F11:
+            self.toggle_fullscreen(); return True
         if key == pygame.K_p:
             self.export_current_png(); return True
         if key in (pygame.K_F1, pygame.K_h):
@@ -1005,7 +1058,8 @@ class App:
             text = self._status_message
             color = theme.success
         else:
-            text = (f"Gen {self.engine.generation}   "
+            text = (f"Matriz {self.engine.width}x{self.engine.height}   "
+                    f"Gen {self.engine.generation}   "
                     f"Pob {self.engine.population} ({self.engine.alive_fraction:.1%})   "
                     f"{self.speed_meter.value:,.0f} gen/s   "
                     f"FPS {self.clock.get_fps():.0f}")

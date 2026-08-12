@@ -63,9 +63,9 @@ estabilizarse), **guns** (estáticos, disparan naves), **puffers** (se mueven de
 
 | Categoría | Patrones |
 |---|---|
-| **Still lifes** | Block, Beehive, Loaf, Boat, Tub, Ship, Pond |
+| **Still lifes** | Block, Beehive, Loaf, Boat, Tub, Ship, Pond, Eater 1 |
 | **Osciladores** | Blinker (p2), Toad (p2), Beacon (p2), Clock (p2), Pulsar (p3), Figure Eight (p8), Pentadecathlon (p15) |
-| **Naves** | Glider (c/4 diagonal), LWSS, MWSS, HWSS (c/2 ortogonal), Copperhead (c/10), Loafer (c/7) |
+| **Naves** | Glider (c/4 diagonal), LWSS, MWSS, HWSS (c/2 ortogonal), Copperhead (c/10), Loafer (c/7 ortogonal) |
 | **Methuselahs** | R-pentomino (1103 gens → pob. 116 + 6 gliders), Diehard (muere en la gen. 130), Acorn (5206 gens → 633 celdas + 13 gliders), Thunderbird |
 | **Cañones** | Gosper glider gun (p30, 1er glider en gen. 15), Simkin glider gun (p120) |
 | **Crecimiento infinito** | Los tres patrones mínimos de Wikipedia: 10 celdas (mínimo demostrado), 5×5, y el de 1 celda de alto |
@@ -162,7 +162,7 @@ JuegoDeLaVida/
 │       ├── engine.py         # LifeEngine: rejilla NumPy, step(), topología, undo
 │       ├── rules.py          # parseo de "B3/S23" → LUT; catálogo de reglas
 │       ├── rle.py            # parse/serialize RLE + plaintext
-│       ├── patterns.py       # biblioteca de 23 construcciones verificadas
+│       ├── patterns.py       # biblioteca de 30 construcciones verificadas
 │       ├── camera.py         # zoom/pan, transformaciones mundo <-> pantalla
 │       ├── renderer.py       # NumPy -> Surface, paleta, modos clasico/edad
 │       ├── selection.py      # selección rectangular, portapapeles, sellos
@@ -173,7 +173,7 @@ JuegoDeLaVida/
 │           ├── theme.py      # colores, fuentes (SysFont, no la fuente interna de pygame)
 │           └── widgets.py    # Button, ToggleButton, Slider, Sparkline, Panel...
 ├── patterns/                 # patrones guardados por el usuario (.rle)
-└── tests/                    # 370 tests + 1 marcado 'slow'
+└── tests/                    # 385 tests + 1 marcado 'slow'
     ├── conftest.py           # pygame headless (SDL dummy), fixture de sesion
     ├── test_rules.py, test_engine.py, test_rle.py, test_patterns.py
     ├── test_camera.py, test_renderer.py, test_widgets.py, test_scrollable_sidebar.py
@@ -341,9 +341,13 @@ Más allá de lo pedido:
 11. **Aleatorio con semilla** (`--seed`) para experimentos reproducibles.
 12. **Exportación a PNG** del estado actual.
 13. **Suite de tests** que valida las reglas y las propiedades documentadas de cada patrón de la
-    biblioteca (periodos, velocidades, poblaciones finales) — garantiza que las construcciones
-    incluidas son correctas y no aproximaciones.
+     biblioteca (periodos, velocidades, poblaciones finales) — garantiza que las construcciones
+     incluidas son correctas y no aproximaciones.
 14. **Pantalla de ayuda superpuesta** (`H` o `F1`) con todos los atajos.
+15. **Pantalla completa** con `F11`, botón de Vista y opción `--fullscreen` en la CLI.
+16. **Información del tamaño de la matriz** en el panel lateral y la barra de estado.
+17. **Zoom mínimo dinámico**: la matriz completa se ajusta exactamente al viewport, sin el límite
+    fijo anterior que impedía encajar rejillas muy grandes.
 
 ---
 
@@ -353,7 +357,7 @@ Más allá de lo pedido:
 |---|---|---|---|
 | **0** | Scaffold: `pyproject.toml`, `uv.lock`, layout `src/vida/`, `.python-version` | `uv run vida --version` funciona | ✅ |
 | **1** | `rules.py` + `engine.py`: LUT, paso vectorizado, topologías, undo | `pytest tests/test_rules.py test_engine.py` en verde | ✅ (88 tests) |
-| **2** | `rle.py` + `patterns.py`: parser/serializador y biblioteca completa | `test_patterns.py` valida periodos y velocidades reales | ✅ (137 tests; 23 patrones) |
+| **2** | `rle.py` + `patterns.py`: parser/serializador y biblioteca inicial | `test_patterns.py` valida periodos y velocidades reales | ✅ (137 tests; 23 patrones iniciales) |
 | **3** | `camera.py` + `renderer.py`: zoom/pan, paleta, edad, estelas | Ventana que muestra un cañón de gliders animado | ✅ (166 tests) |
 | **4** | `ui/widgets.py` + panel de control: play/pausa/velocidad/limpiar/resetear | Todos los controles requeridos operativos | ✅ (224 tests) |
 | **5** | Edición: pintar, borrar, selección, portapapeles, sellos, deshacer | Se puede dibujar y estampar patrones cómodamente | ✅ (296 tests) |
@@ -381,11 +385,14 @@ recentrados dibujaran sus widgets hijos en la posición equivocada.
 - [x] Controles operativos de **pausar, continuar, paso, velocidad, limpiar, resetear, aleatorio**.
 - [x] Velocidad máxima **≥ 3 gen/s** — medido en el caso desfavorable (sopa 30%, sin ventaja de la optimización de caja): **~2.586 gen/s** a 200×200; con patrones dispersos, varios miles de gen/s.
 - [x] Edición de celdas con ratón (pintar/borrar arrastrando), incluso con la simulación en marcha.
-- [x] Biblioteca con **23 construcciones conocidas** insertables como sellos, TODAS verificadas por simulación real (no solo copiadas de memoria) contra sus propiedades documentadas. *(Ajuste respecto al objetivo inicial de ≥30: se priorizó la corrección verificada — periodo exacto, velocidad, generación de extinción o población exacta — sobre alcanzar una cifra arbitraria con patrones sin contrastar. Cubre el 100% de los still lifes/osciladores/naves que Wikipedia destaca en su propia taxonomía, más los 3 matusalenes y el cañón de Gosper.)*
+- [x] Biblioteca con **30 construcciones conocidas** insertables como sellos, TODAS verificadas por simulación real (no solo copiadas de memoria) contra sus propiedades documentadas: 11 formas estables, 7 osciladores, 6 naves, 4 matusalenes y 2 cañones.
 - [x] Guardar el tablero completo **y** una selección parcial en `.rle` estándar.
 - [x] Cargar `.rle` (propios y, por formato, compatibles con los de LifeWiki/Golly).
 - [x] Zoom y paneo fluidos.
-- [x] `pytest` en verde (370 tests + 1 marcado `slow`), incluyendo la validación de patrones contra sus propiedades documentadas y una implementación de referencia independiente del motor.
+- [x] Pantalla completa con `F11`, botón de Vista y `--fullscreen`.
+- [x] Tamaño actual de la matriz visible en la interfaz.
+- [x] Zoom mínimo ajustado al viewport completo; `Ajustar a la ventana` conserva su margen visual.
+- [x] `pytest` en verde (385 tests + 1 marcado `slow`), incluyendo la validación de patrones contra sus propiedades documentadas y una implementación de referencia independiente del motor.
 - [x] `README.md` con instrucciones y `Docs/Controles.md` con los atajos.
 
 ---

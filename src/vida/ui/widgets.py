@@ -372,7 +372,8 @@ class ListPanel(Widget):
         if not self.visible or not self.enabled:
             return False
         if event.type == pygame.MOUSEWHEEL:
-            if self.rect.collidepoint(pygame.mouse.get_pos()):
+            pos = getattr(event, "pos", pygame.mouse.get_pos())
+            if self.rect.collidepoint(pos):
                 self.scroll = max(0, min(self._max_scroll(), self.scroll - event.y * self.item_height * 2))
                 return True
             return False
@@ -473,10 +474,14 @@ class Panel(Widget):
         return widget
 
     def _shift_event(self, event: pygame.event.Event) -> pygame.event.Event:
-        if not hasattr(event, "pos"):
+        if not hasattr(event, "pos") and event.type != pygame.MOUSEWHEEL:
             return event
         data = event.dict.copy()
-        data["pos"] = (event.pos[0] - self.rect.x, event.pos[1] - self.rect.y)
+        if hasattr(event, "pos"):
+            pos = event.pos
+        else:
+            pos = pygame.mouse.get_pos()
+        data["pos"] = (pos[0] - self.rect.x, pos[1] - self.rect.y)
         return pygame.event.Event(event.type, data)
 
     def handle_event(self, event: pygame.event.Event) -> bool:

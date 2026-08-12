@@ -28,6 +28,10 @@ class TestAppConstruction:
         assert app.engine.width == 30
         assert app.engine.height == 30
 
+    def test_shows_current_matrix_size(self, app):
+        assert "Matriz: 30 x 30" in app.lbl_grid_size.text
+        assert "900 celdas" in app.lbl_grid_size.text
+
     def test_starts_paused(self, app):
         assert app.simulating is False
 
@@ -154,6 +158,18 @@ class TestViewActions:
         app.zoom_actual_size()
         assert app.camera.cell_size == pytest.approx(1.0)
 
+    def test_fullscreen_toggle_remembers_windowed_size(self, app, monkeypatch):
+        desktop = type("DisplayInfo", (), {"current_w": 1200, "current_h": 800})()
+        monkeypatch.setattr(pygame.display, "Info", lambda: desktop)
+        assert app.fullscreen is False
+        app.toggle_fullscreen()
+        assert app.fullscreen is True
+        assert app.btn_fullscreen.checked is True
+        app.toggle_fullscreen()
+        assert app.fullscreen is False
+        assert app.screen.get_size() == (900, 600)
+        assert app.btn_fullscreen.checked is False
+
 
 class TestKeyboardShortcuts:
     def test_space_toggles_pause(self, app):
@@ -171,6 +187,14 @@ class TestKeyboardShortcuts:
         assert app.speed_index == 3
         app._handle_keydown(_key(pygame.K_MINUS))
         assert app.speed_index == 2
+
+    def test_f11_toggles_fullscreen(self, app, monkeypatch):
+        desktop = type("DisplayInfo", (), {"current_w": 1200, "current_h": 800})()
+        monkeypatch.setattr(pygame.display, "Info", lambda: desktop)
+        app._handle_keydown(_key(pygame.K_F11))
+        assert app.fullscreen is True
+        app._handle_keydown(_key(pygame.K_F11))
+        assert app.fullscreen is False
 
     def test_g_randomizes_board(self, app):
         app._handle_keydown(_key(pygame.K_g))

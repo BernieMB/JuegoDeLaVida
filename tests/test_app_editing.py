@@ -268,6 +268,19 @@ class TestPatternBrowserOverlay:
         assert app.stamp.active is True
         assert app.pattern_overlay.visible is False
 
+    def test_wheel_scrolls_centered_pattern_list(self, app):
+        app.open_pattern_browser()
+        list_rect = app.pattern_list.rect
+        pos = (
+            app.pattern_overlay.rect.x + list_rect.x + 10,
+            app.pattern_overlay.rect.y + list_rect.y + 10,
+        )
+        pygame.event.post(pygame.event.Event(
+            pygame.MOUSEWHEEL, x=0, y=-1, flipped=False, pos=pos
+        ))
+        app._handle_events()
+        assert app.pattern_list.scroll > 0
+
     def test_click_outside_overlay_closes_it(self, app):
         app.open_pattern_browser()
         far_away_pos = (5, 5)

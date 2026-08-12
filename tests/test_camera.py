@@ -61,7 +61,7 @@ class TestZoom:
         cam.zoom_at(0, 0, factor=1000)
         assert cam.cell_size == Camera.MAX_CELL_SIZE
         cam.zoom_at(0, 0, factor=0.0001)
-        assert cam.cell_size == Camera.MIN_CELL_SIZE
+        assert cam.cell_size == pytest.approx(cam.min_cell_size)
 
 
 class TestPan:
@@ -79,6 +79,35 @@ class TestPan:
 
 
 class TestFitAndVisibleRect:
+    def test_min_cell_size_is_exact_fit(self):
+        cam = _make_camera(grid_width=200, grid_height=100,
+                           viewport_width=800, viewport_height=600)
+        assert cam.min_cell_size == pytest.approx(4.0)
+
+    def test_zoom_out_at_minimum_centers_and_shows_whole_grid(self):
+        cam = _make_camera(cell_size=8)
+        cam.pan_cells(50, 25)
+        cam.zoom_at(400, 300, factor=0.0001)
+        assert cam.cell_size == pytest.approx(cam.min_cell_size)
+        x0, y0, x1, y1 = cam.visible_cell_rect()
+        assert x0 == 0 and y0 == 0
+        assert x1 == cam.grid_width and y1 == cam.grid_height
+
+    def test_fit_to_grid_is_not_capped_for_huge_grid(self):
+        cam = _make_camera(grid_width=5000, grid_height=5000,
+                           viewport_width=800, viewport_height=600)
+        cam.fit_to_grid(margin=1.0)
+        assert cam.cell_size == pytest.approx(0.12)
+        assert cam.cell_size < 0.5
+        x0, y0, x1, y1 = cam.visible_cell_rect()
+        assert x0 == 0 and y0 == 0
+        assert x1 == cam.grid_width and y1 == cam.grid_height
+
+    def test_resize_viewport_reclamps_cell_size(self):
+        cam = _make_camera(cell_size=3.0)
+        cam.resize_viewport(1600, 1200)
+        assert cam.cell_size == pytest.approx(cam.min_cell_size)
+
     def test_fit_to_grid_shows_whole_grid(self):
         cam = _make_camera(grid_width=200, grid_height=200,
                             viewport_width=800, viewport_height=600)

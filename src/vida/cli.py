@@ -42,6 +42,10 @@ def build_arg_parser() -> argparse.ArgumentParser:
         help="Tamano inicial de la ventana 'ANCHOxALTO' (por defecto 1300x860).",
     )
     parser.add_argument(
+        "--fullscreen", action="store_true",
+        help="Arranca la aplicacion a pantalla completa (tambien se puede alternar con F11).",
+    )
+    parser.add_argument(
         "--random", action="store_true",
         help="Arranca con el tablero relleno aleatoriamente en vez de vacio.",
     )
@@ -81,7 +85,7 @@ def main(argv: list[str] | None = None) -> int:
     from vida.app import App
     window_w, window_h = args.window
     app = App(width=width, height=height, rule=rule, topology=topology,
-              window_size=(window_w, window_h))
+              window_size=(window_w, window_h), fullscreen=args.fullscreen)
     if args.random:
         app.engine.randomize(density=args.density, seed=args.seed)
     app.run()

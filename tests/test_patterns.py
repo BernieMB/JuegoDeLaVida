@@ -45,7 +45,7 @@ class TestCatalogStructure:
         }
 
     def test_has_a_healthy_number_of_patterns(self):
-        assert len(CATALOG) >= 20
+        assert len(CATALOG) == 30
 
     def test_every_pattern_grid_matches_its_population(self):
         for pattern in CATALOG.values():
@@ -174,6 +174,16 @@ class TestMethuselahs:
         engine.step(times=5206)
         assert engine.population == 633
 
+    def test_thunderbird_reaches_documented_lifespan(self):
+        pattern = get_pattern("thunderbird")
+        engine = LifeEngine(500, 500, topology=Topology.BOUNDED)
+        engine.stamp(pattern.to_grid(), 250, 250)
+        engine.step(times=243)
+        assert engine.population == 46
+        for _ in range(3):
+            engine.step()
+            assert engine.population == 46
+
 
 class TestGuns:
     def test_gosper_gun_emits_a_new_glider_every_period(self):
@@ -183,6 +193,17 @@ class TestGuns:
         engine = LifeEngine(size, size, topology=Topology.BOUNDED)
         engine.stamp(gun.to_grid(), 15, 15)
         engine.step(times=90)  # dejar pasar el transitorio inicial
+        pop_before = engine.population
+        engine.step(times=gun.period)
+        pop_after = engine.population
+        assert pop_after - pop_before == glider_population
+
+    def test_simkin_gun_emits_a_new_glider_every_period(self):
+        gun = get_pattern("simkin_gun")
+        glider_population = get_pattern("glider").population
+        engine = LifeEngine(500, 500, topology=Topology.BOUNDED)
+        engine.stamp(gun.to_grid(), 100, 100)
+        engine.step(times=240)
         pop_before = engine.population
         engine.step(times=gun.period)
         pop_after = engine.population

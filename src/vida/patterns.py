@@ -8,23 +8,27 @@ coordenadas copiadas de memoria. El detalle de cada verificacion esta en el
 docstring de su entrada; un resumen:
 
 - **Still lifes** (periodo 1): Block, Beehive, Loaf, Boat, Tub, Ship, Pond,
-  Barge, Canoe y Long barge -- todas confirmadas identicas tras 1 generacion.
-- **Osciladores**: Blinker y Toad (periodo 2, poblacion constante), Beacon
-  (periodo 2, poblacion 8<->6), Pulsar (periodo 3, poblacion constante 48),
-  Pentadecathlon (periodo 15, con una fase intermedia de hasta 40 celulas
-  antes de volver exactamente a la forma inicial de 12).
+  Barge, Canoe, Long barge y Eater 1 -- todas confirmadas identicas tras 1
+  generacion.
+- **Osciladores**: Blinker, Toad, Beacon y Clock (periodo 2), Figure eight
+  (periodo 8), Pulsar (periodo 3, poblacion constante 48) y Pentadecathlon
+  (periodo 15, con una fase intermedia de hasta 40 celulas antes de volver
+  exactamente a la forma inicial de 12).
 - **Naves**: Glider (periodo 4, se desplaza 1 celda en diagonal),
   LWSS/MWSS/HWSS (periodo 4, se desplazan 2 celdas en ortogonal -- velocidad
-  c/2 --, con poblacion base 9/11/13 y una fase expandida intermedia).
+  c/2 --), Copperhead (periodo 10, c/10 ortogonal) y Loafer (periodo 7,
+  c/7 ortogonal).
 - **Matusalenes**: R-pentomino (poblacion EXACTA 116 en la generacion 1103,
   igual que documenta Wikipedia), Diehard (se extingue EXACTAMENTE en la
-  generacion 130) y Acorn (poblacion EXACTA 633 en la generacion 5206).
+  generacion 130), Acorn (poblacion EXACTA 633 en la generacion 5206) y
+  Thunderbird (alcanza una configuracion de poblacion 46 en la generacion
+  243).
   Verificados en rejillas de hasta 3200x3200 para que los planeadores
   escapados no choquen contra el borde antes de alcanzar esas generaciones.
 - **Cañones**: Gosper glider gun (36 celulas, caja 36x9; verificado que la
-  poblacion crece EXACTAMENTE +5 cada 30 generaciones una vez estabilizado
-  el mecanismo, tal y como documenta Wikipedia: "produces its first glider
-  on the 15th generation, and another glider every 30th generation").
+  poblacion crece EXACTAMENTE +5 cada 30 generaciones una vez estabilizado)
+  y Simkin glider gun (periodo 120, tambien +5 celulas por ciclo tras el
+  transitorio).
 
 Fuente de las coordenadas del Gosper glider gun: arte ASCII de una
 implementacion real y probada (Rosetta Code, version AppleScript), extraido
@@ -121,6 +125,12 @@ _STILL_LIVES = [
         "Extension de barge, 8 celulas en una diagonal mas larga.",
         ((1, 0), (0, 1), (2, 1), (1, 2), (3, 2), (2, 3), (4, 3), (3, 4)),
     ),
+    KnownPattern(
+        "eater_1", "Eater 1", "still_life",
+        "La primera construccion diseñada para absorber planeadores sin ser "
+        "destruida; forma estable de 7 celulas.",
+        ((0, 0), (1, 0), (0, 1), (2, 1), (2, 2), (2, 3), (3, 3)),
+    ),
 ]
 
 # ---------------------------------------------------------------------------
@@ -156,6 +166,17 @@ _OSCILLATORS = [
         "Oscilador de periodo 2: alterna entre 8 y 6 celulas vivas.",
         ((0, 0), (1, 0), (0, 1), (1, 1), (2, 2), (3, 2), (2, 3), (3, 3)),
         period=2,
+    ),
+    KnownPattern(
+        "clock", "Clock", "oscillator",
+        "Oscilador de periodo 2 y 6 celulas, descubierto en 1970.",
+        ((2, 0), (0, 1), (2, 1), (1, 2), (3, 2), (1, 3)), period=2,
+    ),
+    KnownPattern(
+        "figure_eight", "Figure eight", "oscillator",
+        "Oscilador de periodo 8 y 12 celulas, descubierto en 1970.",
+        ((0, 0), (1, 0), (0, 1), (1, 1), (3, 1), (4, 2), (1, 3),
+         (2, 4), (4, 4), (5, 4), (4, 5), (5, 5)), period=8,
     ),
     KnownPattern(
         "pulsar", "Pulsar", "oscillator",
@@ -204,6 +225,23 @@ _SPACESHIPS = [
          (1, 4), (2, 4), (3, 4), (4, 4), (5, 4)),
         period=4,
     ),
+    KnownPattern(
+        "copperhead", "Copperhead", "spaceship",
+        "Nave ortogonal de periodo 10 y velocidad c/10, descubierta en "
+        "2016. Tiene 28 celulas en su fase mostrada.",
+        ((1, 0), (2, 0), (5, 0), (6, 0), (3, 1), (4, 1), (3, 2), (4, 2),
+         (0, 3), (2, 3), (5, 3), (7, 3), (0, 4), (7, 4), (0, 6), (7, 6),
+         (1, 7), (2, 7), (5, 7), (6, 7), (2, 8), (3, 8), (4, 8), (5, 8),
+         (3, 10), (4, 10), (3, 11), (4, 11)), period=10,
+    ),
+    KnownPattern(
+        "loafer", "Loafer", "spaceship",
+        "Nave ortogonal pequeña de periodo 7 y velocidad c/7, descubierta "
+        "en 2013. Tiene 20 celulas en su fase mostrada.",
+        ((1, 0), (2, 0), (5, 0), (7, 0), (8, 0), (0, 1), (3, 1), (6, 1),
+         (7, 1), (1, 2), (3, 2), (2, 3), (8, 4), (6, 5), (7, 5), (8, 5),
+         (5, 6), (6, 7), (7, 8), (8, 8)), period=7,
+    ),
 ]
 
 # ---------------------------------------------------------------------------
@@ -232,6 +270,12 @@ _METHUSELAHS = [
         "exacta 633 en la generacion 5206, igual que documenta Wikipedia).",
         ((1, 0), (3, 1), (0, 2), (1, 2), (4, 2), (5, 2), (6, 2)),
     ),
+    KnownPattern(
+        "thunderbird", "Thunderbird", "methuselah",
+        "Matusalen de 6 celulas y vida 243; despues del transitorio mantiene "
+        "una configuracion movil con poblacion constante de 46 celulas.",
+        ((0, 0), (1, 0), (2, 0), (1, 2), (1, 3), (1, 4)),
+    ),
 ]
 
 # ---------------------------------------------------------------------------
@@ -254,8 +298,19 @@ _GUNS = [
         "36 celulas en una caja de 36x9; dispara un planeador cada 30 "
         "generaciones (el primero en la generacion 15). Verificado por "
         "simulacion: la poblacion total crece exactamente +5 cada 30 "
-        "generaciones una vez estabilizado.",
+         "generaciones una vez estabilizado.",
         _gosper_coords, period=30,
+    ),
+    KnownPattern(
+        "simkin_gun", "Simkin glider gun", "gun",
+        "Cañon de planeadores de periodo 120, descubierto por Michael Simkin "
+        "en 2015. Tras el transitorio, su poblacion crece +5 por ciclo.",
+        ((0, 0), (1, 0), (7, 0), (8, 0), (0, 1), (1, 1), (7, 1), (8, 1),
+         (4, 3), (5, 3), (4, 4), (5, 4), (22, 9), (23, 9), (25, 9), (26, 9),
+         (21, 10), (27, 10), (21, 11), (28, 11), (31, 11), (32, 11),
+         (21, 12), (22, 12), (23, 12), (27, 12), (31, 12), (32, 12),
+         (26, 13), (20, 17), (21, 17), (20, 18), (21, 19), (22, 19),
+         (23, 19), (23, 20)), period=120,
     ),
 ]
 
